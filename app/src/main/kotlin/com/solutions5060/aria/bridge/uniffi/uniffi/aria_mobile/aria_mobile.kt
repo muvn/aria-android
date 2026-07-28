@@ -835,6 +835,8 @@ internal open class UniffiVTableCallbackInterfacePlatformAudioBridge(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -880,6 +882,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_make_call(`ptr`: Pointer,`uri`: RustBuffer.ByValue,`credentials`: RustBuffer.ByValue,`preferredCodecs`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_notify_network_change(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_register_device(`ptr`: Pointer,`registration`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_reject_incoming_call(`ptr`: Pointer,`callToken`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1042,6 +1046,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_make_call(
     ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_notify_network_change(
+    ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_register_device(
     ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_reject_incoming_call(
@@ -1126,6 +1132,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_make_call() != 192.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_notify_network_change() != 62643.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_register_device() != 16233.toShort()) {
@@ -1662,6 +1671,12 @@ public interface AriaMobileEngineInterface {
     fun `makeCall`(`uri`: kotlin.String, `credentials`: SipCredentials, `preferredCodecs`: List<AudioCodec>): CallInfo
     
     /**
+     * Notify the core of a network connectivity change.
+     * Call this from the platform when WiFi/cellular changes, or after reconnect.
+     */
+    fun `notifyNetworkChange`()
+    
+    /**
      * Register this device with the push gateway.
      * Returns device_id and auth token.
      */
@@ -1947,6 +1962,21 @@ open class AriaMobileEngine: Disposable, AutoCloseable, AriaMobileEngineInterfac
     }
     )
     }
+    
+
+    
+    /**
+     * Notify the core of a network connectivity change.
+     * Call this from the platform when WiFi/cellular changes, or after reconnect.
+     */override fun `notifyNetworkChange`()
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_notify_network_change(
+        it, _status)
+}
+    }
+    
     
 
     

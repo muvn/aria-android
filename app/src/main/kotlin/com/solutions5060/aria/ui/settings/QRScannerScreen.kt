@@ -49,7 +49,8 @@ data class ProvisioningCredentials(
 
 fun parseProvisioningUri(uriString: String): ProvisioningCredentials? {
     return try {
-        Log.d(TAG, "Parsing provisioning URI: $uriString")
+        // Do not log the provisioning URI — it contains the base64 SIP password.
+        Log.d(TAG, "Parsing provisioning URI")
         val uri = Uri.parse(uriString)
         if (uri.scheme != "aria" || uri.host != "provision") return null
 
@@ -78,9 +79,52 @@ fun parseProvisioningUri(uriString: String): ProvisioningCredentials? {
             apiUrl = apiUrl,
         )
     } catch (e: Exception) {
-        Log.e(TAG, "Failed to parse provisioning URI: $uriString", e)
+        // Do not log the raw URI — it embeds the base64 SIP password.
+        Log.e(TAG, "Failed to parse provisioning URI", e)
         null
     }
+}
+
+// Hostname (RFC-1123-ish) or bare IPv4. Rejects empty, whitespace, scheme/path
+// artifacts, and anything that does not look like a real host.
+private val HOSTNAME_REGEX = Regex(
+    "^(([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)\\.)+[a-zA-Z]{2,}$"
+)
+private val IPV4_REGEX = Regex("^(\\d{1,3})(\\.\\d{1,3}){3}$")
+
+private fun isValidHost(host: String?): Boolean {
+    if (host.isNullOrBlank()) return false
+    if (host.any { it.isWhitespace() }) return false
+    return HOSTNAME_REGEX.matches(host) || IPV4_REGEX.matches(host)
+}
+
+/**
+ * Validates a parsed provisioning payload before it is trusted for login/SIP
+ * registration, so a hostile QR cannot silently point the client at an
+ * attacker-controlled server or a plain-http API endpoint.
+ *
+ * Returns null when the payload is acceptable, or a user-facing error message
+ * describing why it was rejected.
+ */
+fun validateProvisioning(creds: ProvisioningCredentials): String? {
+    if (!isValidHost(creds.server)) {
+        return "Rejected: the provisioning server host is missing or invalid."
+    }
+    if (creds.apiUrl.isBlank()) {
+        return "Rejected: the provisioning code is missing a secure API endpoint."
+    }
+    val apiUri = try {
+        Uri.parse(creds.apiUrl)
+    } catch (e: Exception) {
+        null
+    }
+    if (apiUri == null ||
+        !apiUri.scheme.equals("https", ignoreCase = true) ||
+        !isValidHost(apiUri.host)
+    ) {
+        return "Rejected: the API endpoint must use https with a valid hostname."
+    }
+    return null
 }
 
 @Composable
@@ -130,10 +174,18 @@ fun QRScannerScreen(
                     flashEnabled = flashEnabled,
                     onBarcodeDetected = { rawValue ->
                         val creds = parseProvisioningUri(rawValue)
-                        if (creds != null) {
-                            onCredentialsScanned(creds)
-                        } else {
-                            errorMessage = "Invalid QR code. Expected an Aria provisioning code."
+                        when {
+                            creds == null ->
+                                errorMessage = "Invalid QR code. Expected an Aria provisioning code."
+                            else -> {
+                                val rejection = validateProvisioning(creds)
+                                if (rejection != null) {
+                                    // Untrusted / insecure endpoint — do not auto-login.
+                                    errorMessage = rejection
+                                } else {
+                                    onCredentialsScanned(creds)
+                                }
+                            }
                         }
                     },
                 )

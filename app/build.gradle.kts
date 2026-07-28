@@ -88,6 +88,9 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.4.1")
     implementation("androidx.camera:camera-view:1.4.1")
 
+    // Encrypted storage for sensitive credentials (SIP password, JWT, gateway token)
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
     // HTTP client for PBX API
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 

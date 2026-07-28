@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Network security policy for the Aria softphone.
+
+    Effective from API 24+ (this app's minSdk is 26, so the policy always
+    applies). On API 24+ this file OVERRIDES the manifest's
+    android:usesCleartextTraffic flag, which we still set to "false" as
+    defense-in-depth for any tooling/older-behaviour that reads it.
+
+    Policy:
+      * base-config denies cleartext for ALL destinations by default. This
+        covers every connection that goes through the platform HTTP stack —
+        OkHttp / HttpURLConnection (see service/PbxApiClient.kt) and the
+        Rust reqwest client — so the gateway (https://push.ariaroute.com) and
+        any API traffic can only ever be reached over TLS. A hostile QR that
+        tries to point the client at an http:// gateway will now fail to
+        connect instead of leaking the token in cleartext.
+      * We keep the system trust anchors only (no user-added CAs), so a
+        locally installed / MITM CA cannot silently intercept app TLS.
+
+    SIP is NOT affected by this policy. SIP signalling and RTP media are sent
+    over RAW UDP/TCP sockets opened by the native Rust SIP stack (via the
+    UniFFI bridge), not through Android's managed HTTP stack.
+    networkSecurityConfig only governs connections made through
+    HttpsURLConnection / HttpURLConnection / the platform socket-trust APIs;
+    it does NOT inspect or block arbitrary raw DatagramSocket / Socket
+    traffic. Denying cleartext here therefore does not break UDP/TCP SIP
+    registration or calling. (Confidentiality of SIP itself is addressed
+    separately by preferring the "tls" SIP transport + SRTP — see audit M3.)
+
+    The domain-config below re-permits cleartext ONLY for loopback / the
+    Android-emulator host alias, so a developer can point the app at a local
+    plaintext dev backend without weakening the production policy. These hosts
+    are not routable off-device and never reachable in a shipped build.
+-->
+<network-security-config>
+
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Dev/local only: localhost and the emulator's host-loopback alias. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
+
+</network-security-config>

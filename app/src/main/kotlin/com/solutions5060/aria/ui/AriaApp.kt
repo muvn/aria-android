@@ -29,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.solutions5060.aria.security.SecurePrefs
 import com.solutions5060.aria.service.SipEngineHolder
 import com.solutions5060.aria.ui.call.CallScreen
 import com.solutions5060.aria.ui.contacts.ContactsScreen
@@ -132,7 +133,6 @@ fun AriaApp() {
                     // SIP registrar = server address (where to send REGISTER)
                     prefs.edit()
                         .putString(KEY_SIP_USERNAME, creds.username)
-                        .putString(KEY_SIP_PASSWORD, creds.password)
                         .putString(KEY_SIP_DOMAIN, creds.tenantDomain.ifEmpty { creds.server })
                         .putString(KEY_SIP_REGISTRAR, creds.server)
                         .putString(KEY_SIP_DISPLAY_NAME, creds.displayName)
@@ -141,6 +141,8 @@ fun AriaApp() {
                         .putString(KEY_API_URL, creds.apiUrl)
                         .putString("tenant_domain", creds.tenantDomain)
                         .apply()
+                    // SIP password is sensitive — store it encrypted.
+                    SecurePrefs.putString(context, KEY_SIP_PASSWORD, creds.password)
                     phase = AppPhase.MAIN
                 },
                 onManualSetup = {
@@ -154,6 +156,7 @@ fun AriaApp() {
                 prefs = prefs,
                 onSignOut = {
                     prefs.edit().clear().apply()
+                    SecurePrefs.clear(context)
                     SipEngineHolder.engine = null
                     phase = AppPhase.SETUP
                 },
@@ -205,7 +208,7 @@ private fun MainApp(
     LaunchedEffect(Unit) {
         if (SipEngineHolder.engine == null) {
             val username = prefs.getString(KEY_SIP_USERNAME, "") ?: ""
-            val password = prefs.getString(KEY_SIP_PASSWORD, "") ?: ""
+            val password = SecurePrefs.getString(context, KEY_SIP_PASSWORD, "") ?: ""
             val domain = prefs.getString(KEY_SIP_DOMAIN, "") ?: ""
             val apiUrl = prefs.getString(KEY_API_URL, "") ?: ""
             val tenantDomain = prefs.getString("tenant_domain", "") ?: ""
@@ -224,7 +227,7 @@ private fun MainApp(
                         }
 
                         var gwUrl = prefs.getString("gateway_url", null) ?: ""
-                        var gwToken = prefs.getString("gateway_token", null) ?: ""
+                        var gwToken = SecurePrefs.getString(context, "gateway_token", null) ?: ""
 
                         // If we don't have a gateway token, do a full login first
                         if (gwToken.isEmpty() && apiUrl.isNotEmpty()) {
@@ -239,14 +242,16 @@ private fun MainApp(
                             gwUrl = deviceResult.gatewayUrl.ifEmpty { "https://push.ariaroute.com" }
                             gwToken = deviceResult.gatewayToken.ifEmpty { loginResult.jwt }
                             prefs.edit()
-                                .putString("jwt", loginResult.jwt)
                                 .putString("extension_id", loginResult.extensionId)
                                 .putString("tenant_id", loginResult.tenantId)
                                 .putString("device_id", deviceResult.deviceId)
                                 .putString("gateway_url", gwUrl)
-                                .putString("gateway_token", gwToken)
                                 .apply()
-                            Log.d(TAG, "Full login completed, gwUrl=$gwUrl, gwToken=${gwToken.take(20)}...")
+                            // JWT and gateway token are sensitive — store encrypted.
+                            SecurePrefs.putString(context, "jwt", loginResult.jwt)
+                            SecurePrefs.putString(context, "gateway_token", gwToken)
+                            // Do not log the gateway token (even a prefix).
+                            Log.d(TAG, "Full login completed, gwUrl=$gwUrl")
                         }
 
                         Log.d(TAG, "Engine init: gwUrl=$gwUrl, gwToken empty=${gwToken.isEmpty()}")
@@ -336,7 +341,7 @@ private fun MainApp(
 
         val domain = prefs.getString(KEY_SIP_DOMAIN, "") ?: ""
         val username = prefs.getString(KEY_SIP_USERNAME, "") ?: ""
-        val password = prefs.getString(KEY_SIP_PASSWORD, "") ?: ""
+        val password = SecurePrefs.getString(context, KEY_SIP_PASSWORD, "") ?: ""
         val transport = prefs.getString(KEY_SIP_TRANSPORT, "udp") ?: "udp"
         val port = prefs.getString(KEY_SIP_PORT, "5060") ?: "5060"
         val registrar = prefs.getString(KEY_SIP_REGISTRAR, "") ?: ""

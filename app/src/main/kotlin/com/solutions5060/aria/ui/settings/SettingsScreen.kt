@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.messaging.FirebaseMessaging
 import com.solutions5060.aria.R
+import com.solutions5060.aria.security.SecurePrefs
 import com.solutions5060.aria.service.PbxApiClient
 import com.solutions5060.aria.service.SipEngineHolder
 import com.solutions5060.aria.ui.theme.AriaGreen
@@ -47,7 +48,9 @@ fun SettingsScreen(onSignOut: () -> Unit = {}) {
 
     // Core SIP fields (read-only after QR scan)
     var sipUsername by rememberSaveable { mutableStateOf(prefs.getString("sip_username", "") ?: "") }
-    var sipPassword by rememberSaveable { mutableStateOf(prefs.getString("sip_password", "") ?: "") }
+    // Password is sensitive: read from encrypted storage and keep it out of the
+    // saveable instance-state bundle (use remember, not rememberSaveable).
+    var sipPassword by remember { mutableStateOf(SecurePrefs.getString(context, "sip_password", "") ?: "") }
     var sipDomain by rememberSaveable { mutableStateOf(prefs.getString("sip_domain", "") ?: "") }
     var sipRegistrar by rememberSaveable { mutableStateOf(prefs.getString("sip_registrar", "") ?: "") }
     var sipDisplayName by rememberSaveable { mutableStateOf(prefs.getString("sip_display_name", "") ?: "") }
@@ -57,7 +60,7 @@ fun SettingsScreen(onSignOut: () -> Unit = {}) {
     var tenantDomain by rememberSaveable { mutableStateOf(prefs.getString("tenant_domain", "") ?: "") }
 
     // PBX auth state
-    var jwt by remember { mutableStateOf(prefs.getString("jwt", null)) }
+    var jwt by remember { mutableStateOf(SecurePrefs.getString(context, "jwt", null)) }
     var extensionId by remember { mutableStateOf(prefs.getString("extension_id", null)) }
     var tenantId by remember { mutableStateOf(prefs.getString("tenant_id", null)) }
     var deviceId by remember { mutableStateOf(prefs.getString("device_id", null)) }
@@ -107,10 +110,11 @@ fun SettingsScreen(onSignOut: () -> Unit = {}) {
                 tenantId = loginResult.tenantId
 
                 prefs.edit()
-                    .putString("jwt", loginResult.jwt)
                     .putString("extension_id", loginResult.extensionId)
                     .putString("tenant_id", loginResult.tenantId)
                     .apply()
+                // JWT is a sensitive bearer token — store encrypted.
+                SecurePrefs.putString(context, "jwt", loginResult.jwt)
 
                 val token = fcmToken ?: ""
                 val deviceResult = client.registerDevice(
@@ -124,8 +128,9 @@ fun SettingsScreen(onSignOut: () -> Unit = {}) {
                 prefs.edit()
                     .putString("device_id", deviceResult.deviceId)
                     .putString("gateway_url", deviceResult.gatewayUrl)
-                    .putString("gateway_token", deviceResult.gatewayToken)
                     .apply()
+                // Gateway token is sensitive — store encrypted.
+                SecurePrefs.putString(context, "gateway_token", deviceResult.gatewayToken)
 
                 val gwUrl = deviceResult.gatewayUrl.ifEmpty { "https://push.ariaroute.com" }
                 val gwToken = deviceResult.gatewayToken.ifEmpty { loginResult.jwt }
@@ -179,7 +184,6 @@ fun SettingsScreen(onSignOut: () -> Unit = {}) {
 
                 prefs.edit()
                     .putString("sip_username", creds.username)
-                    .putString("sip_password", creds.password)
                     .putString("sip_domain", creds.tenantDomain.ifEmpty { creds.server })
                     .putString("sip_registrar", creds.server)
                     .putString("sip_display_name", creds.displayName)
@@ -188,6 +192,8 @@ fun SettingsScreen(onSignOut: () -> Unit = {}) {
                     .putString("api_url", creds.apiUrl)
                     .putString("tenant_domain", creds.tenantDomain)
                     .apply()
+                // SIP password is sensitive — store encrypted.
+                SecurePrefs.putString(context, "sip_password", creds.password)
 
                 performLogin()
             },

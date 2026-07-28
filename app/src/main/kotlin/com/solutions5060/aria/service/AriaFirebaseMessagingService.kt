@@ -42,7 +42,8 @@ class AriaFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        Log.i(TAG, "FCM message received: ${message.data}")
+        // Do not log message.data — it carries the call token and other secrets.
+        Log.i(TAG, "FCM message received (${message.data.size} data keys)")
 
         val data = message.data
 
@@ -52,6 +53,10 @@ class AriaFirebaseMessagingService : FirebaseMessagingService() {
         val callerUri = data["callerUri"] ?: data["caller_uri"] ?: "Unknown"
         val callerName = data["callerName"] ?: data["caller_name"]
         val gatewayUrl = data["gatewayUrl"] ?: data["gateway_url"] ?: "https://push.ariaroute.com"
+
+        // Record the token as coming from a genuine push so the exported
+        // MainActivity will accept it (and reject any injected/fabricated token).
+        IncomingCallService.expectCallToken(callToken)
 
         Log.i(TAG, "Incoming call from $callerUri (token: ${callToken.take(8)})")
 

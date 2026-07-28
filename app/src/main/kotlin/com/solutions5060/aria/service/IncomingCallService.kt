@@ -40,6 +40,27 @@ class IncomingCallService : Service() {
 
         private const val NOTIFICATION_ID = 2001
         private const val TIMEOUT_MS = 30_000L
+
+        /**
+         * Call tokens this process has received through the legitimate FCM push
+         * pipeline. The exported [com.solutions5060.aria.MainActivity] only acts
+         * on a `call_token` intent extra if it is present here, so an arbitrary
+         * app cannot inject a fabricated token into the answer flow.
+         *
+         * In-memory only (cleared on process death); a token is a short-lived
+         * per-call secret issued by the gateway.
+         */
+        private val expectedCallTokens =
+            java.util.Collections.synchronizedSet(HashSet<String>())
+
+        /** Records a token as originating from a genuine incoming-call push. */
+        fun expectCallToken(token: String) {
+            if (token.isNotEmpty()) expectedCallTokens.add(token)
+        }
+
+        /** True if [token] was issued via the push pipeline (provenance check). */
+        fun isExpectedCallToken(token: String): Boolean =
+            expectedCallTokens.contains(token)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

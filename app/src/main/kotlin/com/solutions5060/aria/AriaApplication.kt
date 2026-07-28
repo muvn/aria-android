@@ -8,6 +8,8 @@ import android.telecom.PhoneAccount
 import android.telecom.PhoneAccountHandle
 import android.telecom.TelecomManager
 import android.util.Log
+import android.content.Context
+import com.solutions5060.aria.security.SecurePrefs
 import com.solutions5060.aria.service.AriaConnectionService
 import com.solutions5060.aria.service.NetworkMonitor
 import uniffi.aria_mobile.initRuntime
@@ -25,6 +27,13 @@ class AriaApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Migrate any legacy plaintext secrets into encrypted storage before
+        // anything reads credentials.
+        SecurePrefs.migrateFrom(
+            this,
+            getSharedPreferences("aria_prefs", Context.MODE_PRIVATE),
+        )
 
         // Initialize the Rust runtime (via UniFFI)
         initRuntime()
