@@ -87,7 +87,11 @@ case "$AI" in
     1) AI_FEATURES="--features ai" ;;
     *) AI_FEATURES="" ;;
 esac
-if [ -n "$AI_FEATURES" ]; then
+# Applied inside a subshell for the arm64 build only. Exporting these globally
+# pins CMake to the arm64 toolchain, so the armv7 and x86_64 builds then compile
+# their C dependencies (Opus) for the wrong architecture and fail at link with
+# "incompatible with armelf_linux_eabi".
+setup_ai_env() {
     echo "On-device AI enabled for arm64: $AI_FEATURES"
     # whisper.cpp/llama.cpp cross-compilation needs the same four fixes as
     # aria-ai-core's own build-android.sh; see its comments for why each exists.
@@ -110,12 +114,16 @@ if [ -n "$AI_FEATURES" ]; then
         fi
         export RUSTFLAGS="${RUSTFLAGS:-} -L native=$SHIM"
     fi
-fi
+}
 
 # Build for all Android targets
 echo "Building aarch64-linux-android (ARM64)..."
-cargo build $CARGO_FLAGS $AI_FEATURES --manifest-path "$RUST_DIR/Cargo.toml" \
-    --target aarch64-linux-android
+(
+    # Subshell: the AI toolchain settings must not reach the other two ABIs.
+    [ -n "$AI_FEATURES" ] && setup_ai_env
+    cargo build $CARGO_FLAGS $AI_FEATURES --manifest-path "$RUST_DIR/Cargo.toml" \
+        --target aarch64-linux-android
+)
 
 echo "Building armv7-linux-androideabi (ARMv7)..."
 cargo build $CARGO_FLAGS --manifest-path "$RUST_DIR/Cargo.toml" \
