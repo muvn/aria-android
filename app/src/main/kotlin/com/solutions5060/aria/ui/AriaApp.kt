@@ -36,6 +36,7 @@ import com.solutions5060.aria.ui.contacts.ContactsScreen
 import com.solutions5060.aria.ui.dialer.DialerScreen
 import com.solutions5060.aria.ui.history.HistoryScreen
 import com.solutions5060.aria.ui.settings.SettingsScreen
+import com.solutions5060.aria.ui.settings.TranscriptionScreen
 import com.solutions5060.aria.ui.setup.SetupScreen
 import com.solutions5060.aria.ui.splash.SplashScreen
 import kotlinx.coroutines.delay
@@ -493,7 +494,13 @@ private fun MainApp(
                     HistoryScreen(onCall = { number -> placeCall(number) })
                 }
                 composable("settings") {
-                    SettingsScreen(onSignOut = onSignOut)
+                    SettingsScreen(
+                        onSignOut = onSignOut,
+                        onOpenTranscription = { navController.navigate("transcription") },
+                    )
+                }
+                composable("transcription") {
+                    TranscriptionScreen(onBack = { navController.popBackStack() })
                 }
             }
         }

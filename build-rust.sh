@@ -70,9 +70,51 @@ export CXX_x86_64_linux_android="$TOOLCHAIN/x86_64-linux-android24-clang++"
 export ANDROID_NDK="$ANDROID_NDK_HOME"
 export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
+# ── On-device transcription ─────────────────────────────────────────────────
+#
+# Off unless AI=1, because it pulls whisper.cpp (and with AI=2, llama.cpp) — a
+# slow C++ build that a plain SIP build should not pay for.
+#
+#   AI=1 ./build-rust.sh    transcription
+#   AI=2 ./build-rust.sh    transcription + on-device summaries
+#
+# arm64 only: a 32-bit ARMv7 handset cannot usefully run a 600 MB model, and
+# x86_64 is the emulator. The other two ABIs stay plain SIP builds, and
+# `ai_available()` reports false there at runtime.
+AI="${AI:-0}"
+case "$AI" in
+    2) AI_FEATURES="--features ai-summaries" ;;
+    1) AI_FEATURES="--features ai" ;;
+    *) AI_FEATURES="" ;;
+esac
+if [ -n "$AI_FEATURES" ]; then
+    echo "On-device AI enabled for arm64: $AI_FEATURES"
+    # whisper.cpp/llama.cpp cross-compilation needs the same four fixes as
+    # aria-ai-core's own build-android.sh; see its comments for why each exists.
+    export CMAKE_TOOLCHAIN_FILE="$(cd "$RUST_DIR/../aria-ai-core" && pwd)/cmake/android-arm64.toolchain.cmake"
+    export CMAKE_GENERATOR="Unix Makefiles"
+    export CMAKE_MAKE_PROGRAM="$(command -v make)"
+    export BINDGEN_EXTRA_CLANG_ARGS="--sysroot=$TOOLCHAIN/../sysroot --target=aarch64-linux-android24"
+    export NDK_ROOT="$ANDROID_NDK_HOME"
+    export ANDROID_NDK_ROOT="$ANDROID_NDK_HOME"
+    # whisper-rs-sys asks for -lggml-blas whenever the *host* is macOS, via a
+    # `cfg!(target_os)` in its build script that describes the host and not the
+    # target. CMake never builds it for Android, so supply an empty archive.
+    if [ "$(uname -s)" = "Darwin" ]; then
+        SHIM="$RUST_DIR/target/android-shims"
+        mkdir -p "$SHIM"
+        if [ ! -f "$SHIM/libggml-blas.a" ]; then
+            : > "$SHIM/empty.c"
+            "$TOOLCHAIN/aarch64-linux-android24-clang" -c "$SHIM/empty.c" -o "$SHIM/empty.o"
+            "$TOOLCHAIN/llvm-ar" rcs "$SHIM/libggml-blas.a" "$SHIM/empty.o"
+        fi
+        export RUSTFLAGS="${RUSTFLAGS:-} -L native=$SHIM"
+    fi
+fi
+
 # Build for all Android targets
 echo "Building aarch64-linux-android (ARM64)..."
-cargo build $CARGO_FLAGS --manifest-path "$RUST_DIR/Cargo.toml" \
+cargo build $CARGO_FLAGS $AI_FEATURES --manifest-path "$RUST_DIR/Cargo.toml" \
     --target aarch64-linux-android
 
 echo "Building armv7-linux-androideabi (ARMv7)..."

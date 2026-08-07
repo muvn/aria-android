@@ -837,6 +837,28 @@ internal open class UniffiVTableCallbackInterfacePlatformAudioBridge(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -865,6 +887,28 @@ internal interface UniffiLib : Library {
     fun uniffi_aria_mobile_core_fn_constructor_ariamobileengine_new(`gatewayConfig`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_accept_incoming_call(`ptr`: Pointer,`callToken`: RustBuffer.ByValue,`preferredCodecs`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_available(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_cancel_download(`ptr`: Pointer,`modelId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_delete_model(`ptr`: Pointer,`modelId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_discard_capture(`ptr`: Pointer,`callId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_download_progress(`ptr`: Pointer,`modelId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_init(`ptr`: Pointer,`storageDir`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_models(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_start_capture(`ptr`: Pointer,`callId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_start_download(`ptr`: Pointer,`modelId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_stop_capture(`ptr`: Pointer,`callId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_transcribe(`ptr`: Pointer,`callId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_check_remote_hangup(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -1030,6 +1074,28 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_accept_incoming_call(
     ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_available(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_cancel_download(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_delete_model(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_discard_capture(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_download_progress(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_init(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_models(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_start_capture(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_start_download(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_stop_capture(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_transcribe(
+    ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_check_remote_hangup(
     ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_get_active_call(
@@ -1108,6 +1174,39 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_accept_incoming_call() != 41420.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_available() != 61142.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_cancel_download() != 31065.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_delete_model() != 63945.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_discard_capture() != 53187.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_download_progress() != 32712.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_init() != 51124.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_models() != 23891.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_start_capture() != 46631.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_start_download() != 2761.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_stop_capture() != 47303.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_transcribe() != 4868.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_check_remote_hangup() != 44253.toShort()) {
@@ -1327,6 +1426,29 @@ public object FfiConverterULong: FfiConverter<ULong, Long> {
 
     override fun write(value: ULong, buf: ByteBuffer) {
         buf.putLong(value.toLong())
+    }
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterLong: FfiConverter<Long, Long> {
+    override fun lift(value: Long): Long {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Long {
+        return buf.getLong()
+    }
+
+    override fun lower(value: Long): Long {
+        return value
+    }
+
+    override fun allocationSize(value: Long) = 8UL
+
+    override fun write(value: Long, buf: ByteBuffer) {
+        buf.putLong(value)
     }
 }
 
@@ -1629,6 +1751,64 @@ public interface AriaMobileEngineInterface {
     fun `acceptIncomingCall`(`callToken`: kotlin.String, `preferredCodecs`: List<AudioCodec>): CallInfo
     
     /**
+     * Was this binary built with transcription support?
+     *
+     * Lets one app package probe at runtime instead of the host guessing from
+     * its build flavour.
+     */
+    fun `aiAvailable`(): kotlin.Boolean
+    
+    fun `aiCancelDownload`(`modelId`: kotlin.String)
+    
+    fun `aiDeleteModel`(`modelId`: kotlin.String)
+    
+    /**
+     * Discard a captured call without transcribing it.
+     */
+    fun `aiDiscardCapture`(`callId`: kotlin.String)
+    
+    fun `aiDownloadProgress`(`modelId`: kotlin.String): AiDownloadProgress?
+    
+    /**
+     * Prepare on-device AI, storing models under `storage_dir`.
+     *
+     * The host owns the path — iOS Application Support, Android filesDir — so
+     * nothing here hardcodes a platform location.
+     */
+    fun `aiInit`(`storageDir`: kotlin.String)
+    
+    /**
+     * Models this device could install, annotated with whether it can run them.
+     */
+    fun `aiModels`(): List<AiModel>
+    
+    /**
+     * Begin capturing a call's audio for later transcription.
+     *
+     * Audio is tapped where it is decoded, so calling this does not move any
+     * samples across this boundary. Safe to call mid-call.
+     */
+    fun `aiStartCapture`(`callId`: kotlin.String)
+    
+    /**
+     * Start downloading a model. Poll `ai_download_progress` for state.
+     */
+    fun `aiStartDownload`(`modelId`: kotlin.String)
+    
+    /**
+     * Stop capturing without transcribing.
+     */
+    fun `aiStopCapture`(`callId`: kotlin.String)
+    
+    /**
+     * Transcribe what was captured, and summarise it when an LLM is installed.
+     *
+     * Runs the models, so it takes seconds to minutes depending on call length
+     * and device. Call it off the UI thread.
+     */
+    fun `aiTranscribe`(`callId`: kotlin.String): AiCallInsight
+    
+    /**
      * Check if any active call was ended by the remote party.
      * Returns the call_id if detected, null otherwise.
      * The app should call this periodically from a UI timer (~2s).
@@ -1834,6 +2014,172 @@ open class AriaMobileEngine: Disposable, AutoCloseable, AriaMobileEngineInterfac
     uniffiRustCallWithError(MobileException) { _status ->
     UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_accept_incoming_call(
         it, FfiConverterString.lower(`callToken`),FfiConverterSequenceTypeAudioCodec.lower(`preferredCodecs`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Was this binary built with transcription support?
+     *
+     * Lets one app package probe at runtime instead of the host guessing from
+     * its build flavour.
+     */override fun `aiAvailable`(): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_available(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `aiCancelDownload`(`modelId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_cancel_download(
+        it, FfiConverterString.lower(`modelId`),_status)
+}
+    }
+    
+    
+
+    
+    @Throws(MobileException::class)override fun `aiDeleteModel`(`modelId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(MobileException) { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_delete_model(
+        it, FfiConverterString.lower(`modelId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Discard a captured call without transcribing it.
+     */override fun `aiDiscardCapture`(`callId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_discard_capture(
+        it, FfiConverterString.lower(`callId`),_status)
+}
+    }
+    
+    
+
+    override fun `aiDownloadProgress`(`modelId`: kotlin.String): AiDownloadProgress? {
+            return FfiConverterOptionalTypeAiDownloadProgress.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_download_progress(
+        it, FfiConverterString.lower(`modelId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Prepare on-device AI, storing models under `storage_dir`.
+     *
+     * The host owns the path — iOS Application Support, Android filesDir — so
+     * nothing here hardcodes a platform location.
+     */
+    @Throws(MobileException::class)override fun `aiInit`(`storageDir`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(MobileException) { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_init(
+        it, FfiConverterString.lower(`storageDir`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Models this device could install, annotated with whether it can run them.
+     */override fun `aiModels`(): List<AiModel> {
+            return FfiConverterSequenceTypeAiModel.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_models(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Begin capturing a call's audio for later transcription.
+     *
+     * Audio is tapped where it is decoded, so calling this does not move any
+     * samples across this boundary. Safe to call mid-call.
+     */
+    @Throws(MobileException::class)override fun `aiStartCapture`(`callId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(MobileException) { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_start_capture(
+        it, FfiConverterString.lower(`callId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Start downloading a model. Poll `ai_download_progress` for state.
+     */
+    @Throws(MobileException::class)override fun `aiStartDownload`(`modelId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCallWithError(MobileException) { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_start_download(
+        it, FfiConverterString.lower(`modelId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Stop capturing without transcribing.
+     */override fun `aiStopCapture`(`callId`: kotlin.String)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_stop_capture(
+        it, FfiConverterString.lower(`callId`),_status)
+}
+    }
+    
+    
+
+    
+    /**
+     * Transcribe what was captured, and summarise it when an LLM is installed.
+     *
+     * Runs the models, so it takes seconds to minutes depending on call length
+     * and device. Call it off the UI thread.
+     */
+    @Throws(MobileException::class)override fun `aiTranscribe`(`callId`: kotlin.String): AiCallInsight {
+            return FfiConverterTypeAiCallInsight.lift(
+    callWithPointer {
+    uniffiRustCallWithError(MobileException) { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_transcribe(
+        it, FfiConverterString.lower(`callId`),_status)
 }
     }
     )
@@ -2161,6 +2507,234 @@ public object FfiConverterTypeAriaMobileEngine: FfiConverter<AriaMobileEngine, P
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+/**
+ * The finished result for one call.
+ */
+data class AiCallInsight (
+    var `callId`: kotlin.String, 
+    var `createdAt`: kotlin.Long, 
+    var `durationSecs`: kotlin.UInt, 
+    var `segments`: List<AiTranscriptSegment>, 
+    var `language`: kotlin.String?, 
+    /**
+     * Present only when a summarisation model is installed and ran.
+     */
+    var `summaryHeadline`: kotlin.String?, 
+    var `summaryPoints`: List<kotlin.String>, 
+    /**
+     * "pending", "transcribing", "complete", "transcript_only", "failed".
+     */
+    var `status`: kotlin.String
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAiCallInsight: FfiConverterRustBuffer<AiCallInsight> {
+    override fun read(buf: ByteBuffer): AiCallInsight {
+        return AiCallInsight(
+            FfiConverterString.read(buf),
+            FfiConverterLong.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterSequenceTypeAiTranscriptSegment.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterSequenceString.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: AiCallInsight) = (
+            FfiConverterString.allocationSize(value.`callId`) +
+            FfiConverterLong.allocationSize(value.`createdAt`) +
+            FfiConverterUInt.allocationSize(value.`durationSecs`) +
+            FfiConverterSequenceTypeAiTranscriptSegment.allocationSize(value.`segments`) +
+            FfiConverterOptionalString.allocationSize(value.`language`) +
+            FfiConverterOptionalString.allocationSize(value.`summaryHeadline`) +
+            FfiConverterSequenceString.allocationSize(value.`summaryPoints`) +
+            FfiConverterString.allocationSize(value.`status`)
+    )
+
+    override fun write(value: AiCallInsight, buf: ByteBuffer) {
+            FfiConverterString.write(value.`callId`, buf)
+            FfiConverterLong.write(value.`createdAt`, buf)
+            FfiConverterUInt.write(value.`durationSecs`, buf)
+            FfiConverterSequenceTypeAiTranscriptSegment.write(value.`segments`, buf)
+            FfiConverterOptionalString.write(value.`language`, buf)
+            FfiConverterOptionalString.write(value.`summaryHeadline`, buf)
+            FfiConverterSequenceString.write(value.`summaryPoints`, buf)
+            FfiConverterString.write(value.`status`, buf)
+    }
+}
+
+
+
+/**
+ * Progress of a model download, polled rather than pushed.
+ */
+data class AiDownloadProgress (
+    var `modelId`: kotlin.String, 
+    var `downloadedBytes`: kotlin.ULong, 
+    var `totalBytes`: kotlin.ULong, 
+    /**
+     * "queued", "running", "verifying", "completed", "cancelled", "failed".
+     */
+    var `state`: kotlin.String, 
+    var `error`: kotlin.String?
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAiDownloadProgress: FfiConverterRustBuffer<AiDownloadProgress> {
+    override fun read(buf: ByteBuffer): AiDownloadProgress {
+        return AiDownloadProgress(
+            FfiConverterString.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: AiDownloadProgress) = (
+            FfiConverterString.allocationSize(value.`modelId`) +
+            FfiConverterULong.allocationSize(value.`downloadedBytes`) +
+            FfiConverterULong.allocationSize(value.`totalBytes`) +
+            FfiConverterString.allocationSize(value.`state`) +
+            FfiConverterOptionalString.allocationSize(value.`error`)
+    )
+
+    override fun write(value: AiDownloadProgress, buf: ByteBuffer) {
+            FfiConverterString.write(value.`modelId`, buf)
+            FfiConverterULong.write(value.`downloadedBytes`, buf)
+            FfiConverterULong.write(value.`totalBytes`, buf)
+            FfiConverterString.write(value.`state`, buf)
+            FfiConverterOptionalString.write(value.`error`, buf)
+    }
+}
+
+
+
+/**
+ * One model the user can install.
+ */
+data class AiModel (
+    var `id`: kotlin.String, 
+    /**
+     * Plain-language name for the picker. Never show a bare model id.
+     */
+    var `displayName`: kotlin.String, 
+    /**
+     * "stt" or "llm".
+     */
+    var `kind`: kotlin.String, 
+    var `sizeBytes`: kotlin.ULong, 
+    /**
+     * True when this device has the memory and class to run it.
+     */
+    var `available`: kotlin.Boolean, 
+    /**
+     * Why it is unavailable, in words a user can act on.
+     */
+    var `unavailableReason`: kotlin.String?, 
+    var `installed`: kotlin.Boolean
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAiModel: FfiConverterRustBuffer<AiModel> {
+    override fun read(buf: ByteBuffer): AiModel {
+        return AiModel(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterULong.read(buf),
+            FfiConverterBoolean.read(buf),
+            FfiConverterOptionalString.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: AiModel) = (
+            FfiConverterString.allocationSize(value.`id`) +
+            FfiConverterString.allocationSize(value.`displayName`) +
+            FfiConverterString.allocationSize(value.`kind`) +
+            FfiConverterULong.allocationSize(value.`sizeBytes`) +
+            FfiConverterBoolean.allocationSize(value.`available`) +
+            FfiConverterOptionalString.allocationSize(value.`unavailableReason`) +
+            FfiConverterBoolean.allocationSize(value.`installed`)
+    )
+
+    override fun write(value: AiModel, buf: ByteBuffer) {
+            FfiConverterString.write(value.`id`, buf)
+            FfiConverterString.write(value.`displayName`, buf)
+            FfiConverterString.write(value.`kind`, buf)
+            FfiConverterULong.write(value.`sizeBytes`, buf)
+            FfiConverterBoolean.write(value.`available`, buf)
+            FfiConverterOptionalString.write(value.`unavailableReason`, buf)
+            FfiConverterBoolean.write(value.`installed`, buf)
+    }
+}
+
+
+
+/**
+ * One utterance in a transcript.
+ */
+data class AiTranscriptSegment (
+    /**
+     * "local" (this handset) or "remote" (the far end).
+     */
+    var `speaker`: kotlin.String, 
+    var `startMs`: kotlin.UInt, 
+    var `endMs`: kotlin.UInt, 
+    var `text`: kotlin.String
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAiTranscriptSegment: FfiConverterRustBuffer<AiTranscriptSegment> {
+    override fun read(buf: ByteBuffer): AiTranscriptSegment {
+        return AiTranscriptSegment(
+            FfiConverterString.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: AiTranscriptSegment) = (
+            FfiConverterString.allocationSize(value.`speaker`) +
+            FfiConverterUInt.allocationSize(value.`startMs`) +
+            FfiConverterUInt.allocationSize(value.`endMs`) +
+            FfiConverterString.allocationSize(value.`text`)
+    )
+
+    override fun write(value: AiTranscriptSegment, buf: ByteBuffer) {
+            FfiConverterString.write(value.`speaker`, buf)
+            FfiConverterUInt.write(value.`startMs`, buf)
+            FfiConverterUInt.write(value.`endMs`, buf)
+            FfiConverterString.write(value.`text`, buf)
     }
 }
 
@@ -3022,6 +3596,38 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeAiDownloadProgress: FfiConverterRustBuffer<AiDownloadProgress?> {
+    override fun read(buf: ByteBuffer): AiDownloadProgress? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeAiDownloadProgress.read(buf)
+    }
+
+    override fun allocationSize(value: AiDownloadProgress?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeAiDownloadProgress.allocationSize(value)
+        }
+    }
+
+    override fun write(value: AiDownloadProgress?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeAiDownloadProgress.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeCallInfo: FfiConverterRustBuffer<CallInfo?> {
     override fun read(buf: ByteBuffer): CallInfo? {
         if (buf.get().toInt() == 0) {
@@ -3104,6 +3710,90 @@ public object FfiConverterSequenceShort: FfiConverterRustBuffer<List<kotlin.Shor
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterShort.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.String>> {
+    override fun read(buf: ByteBuffer): List<kotlin.String> {
+        val len = buf.getInt()
+        return List<kotlin.String>(len) {
+            FfiConverterString.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<kotlin.String>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterString.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<kotlin.String>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterString.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeAiModel: FfiConverterRustBuffer<List<AiModel>> {
+    override fun read(buf: ByteBuffer): List<AiModel> {
+        val len = buf.getInt()
+        return List<AiModel>(len) {
+            FfiConverterTypeAiModel.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<AiModel>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeAiModel.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<AiModel>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeAiModel.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeAiTranscriptSegment: FfiConverterRustBuffer<List<AiTranscriptSegment>> {
+    override fun read(buf: ByteBuffer): List<AiTranscriptSegment> {
+        val len = buf.getInt()
+        return List<AiTranscriptSegment>(len) {
+            FfiConverterTypeAiTranscriptSegment.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<AiTranscriptSegment>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeAiTranscriptSegment.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<AiTranscriptSegment>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeAiTranscriptSegment.write(it, buf)
         }
     }
 }

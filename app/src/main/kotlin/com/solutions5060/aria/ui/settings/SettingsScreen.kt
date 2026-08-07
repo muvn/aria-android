@@ -42,7 +42,10 @@ private const val PREFS_NAME = "aria_prefs"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onSignOut: () -> Unit = {}) {
+fun SettingsScreen(
+    onSignOut: () -> Unit = {},
+    onOpenTranscription: () -> Unit = {},
+) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE) }
 
@@ -401,6 +404,35 @@ fun SettingsScreen(onSignOut: () -> Unit = {}) {
                             fontWeight = FontWeight.SemiBold,
                         )
                     }
+                }
+            }
+
+            // On-device AI
+            SectionHeader("Transcription")
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                ),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenTranscription() }
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        "On-device transcription",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        "Transcribe calls on this phone. Nothing is uploaded.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
 
