@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import com.solutions5060.aria.ai.CallTranscription
 import com.solutions5060.aria.service.SipEngineHolder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -36,6 +37,7 @@ fun TranscriptionScreen(onBack: () -> Unit = {}) {
     var initError by remember { mutableStateOf<String?>(null) }
     var models by remember { mutableStateOf<List<AiModel>>(emptyList()) }
     var progress by remember { mutableStateOf<Map<String, AiDownloadProgress>>(emptyMap()) }
+    var transcribeCalls by remember { mutableStateOf(CallTranscription.isEnabled(context)) }
 
     // Models live under the app's own files directory, which the OS clears on
     // uninstall — the core never picks a path itself.
@@ -109,6 +111,37 @@ fun TranscriptionScreen(onBack: () -> Unit = {}) {
             }
         }
 
+        // Capturing call audio is a recording, so it stays off until the user
+        // asks for it — having a model installed is not consent on its own.
+        val sttInstalled = models.any { it.kind == "stt" && it.installed }
+        Card(Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text("Transcribe my calls", fontWeight = FontWeight.Medium)
+                    Text(
+                        if (sttInstalled) {
+                            "Both sides of the call are transcribed on this phone."
+                        } else {
+                            "Download a speech model below to turn this on."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(
+                    checked = transcribeCalls && sttInstalled,
+                    enabled = sttInstalled,
+                    onCheckedChange = {
+                        transcribeCalls = it
+                        CallTranscription.setEnabled(context, it)
+                    },
+                )
+            }
+        }
+
         if (models.isEmpty() && initError == null) {
             CircularProgressIndicator(Modifier.padding(24.dp))
         }
@@ -122,6 +155,11 @@ fun TranscriptionScreen(onBack: () -> Unit = {}) {
                 onDelete = {
                     engine?.aiDeleteModel(model.id)
                     models = engine?.aiModels() ?: emptyList()
+                    // Without a speech model there is nothing to capture for.
+                    if (models.none { it.kind == "stt" && it.installed }) {
+                        transcribeCalls = false
+                        CallTranscription.setEnabled(context, false)
+                    }
                 },
             )
         }

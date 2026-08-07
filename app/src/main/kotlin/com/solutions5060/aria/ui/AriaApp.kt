@@ -29,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.solutions5060.aria.ai.CallTranscription
 import com.solutions5060.aria.security.SecurePrefs
 import com.solutions5060.aria.service.SipEngineHolder
 import com.solutions5060.aria.ui.call.CallScreen
@@ -40,6 +41,7 @@ import com.solutions5060.aria.ui.settings.TranscriptionScreen
 import com.solutions5060.aria.ui.setup.SetupScreen
 import com.solutions5060.aria.ui.splash.SplashScreen
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import uniffi.aria_mobile.AudioCodec
 import uniffi.aria_mobile.SipCredentials
@@ -305,6 +307,10 @@ private fun MainApp(
 
     // Poll the engine for active call state and remote hangup detection
     LaunchedEffect(Unit) {
+        // The id of the call seen on the previous tick. A call that disappears
+        // between ticks has ended, whichever side hung up — checkRemoteHangup()
+        // only reports the remote case, so tracking this covers local hangups too.
+        var lastActiveCallId: String? = null
         while (true) {
             val engine = SipEngineHolder.engine
             if (engine != null) {
@@ -312,6 +318,24 @@ private fun MainApp(
                 if (activeCall != null && !showCallScreen) {
                     showCallScreen = true
                 }
+
+                if (activeCall != null && activeCall.callId != lastActiveCallId) {
+                    // Opt-in and a no-op unless the user turned transcription on
+                    // and a speech model is installed.
+                    CallTranscription.onCallStarted(context, activeCall.callId)
+                }
+                if (activeCall == null && lastActiveCallId != null) {
+                    val ended = lastActiveCallId
+                    // Transcribing takes longer than the teardown around it, so
+                    // it runs off this loop rather than stalling hangup polling.
+                    launch {
+                        val insight = CallTranscription.onCallEnded(context, ended)
+                        if (insight != null) {
+                            Log.i(TAG, "Transcript for $ended: ${insight.segments.size} segments (${insight.status})")
+                        }
+                    }
+                }
+                lastActiveCallId = activeCall?.callId
 
                 // Check if remote party hung up
                 val endedCallId = engine.checkRemoteHangup()
