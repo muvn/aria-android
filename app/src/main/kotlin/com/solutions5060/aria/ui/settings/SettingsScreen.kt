@@ -45,6 +45,7 @@ private const val PREFS_NAME = "aria_prefs"
 fun SettingsScreen(
     onSignOut: () -> Unit = {},
     onOpenTranscription: () -> Unit = {},
+    onOpenTranscripts: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE) }
@@ -430,6 +431,32 @@ fun SettingsScreen(
                     )
                     Text(
                         "Transcribe calls on this phone. Nothing is uploaded.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                ),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenTranscripts() }
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        "Call transcripts",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        "Read and delete transcripts of past calls.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

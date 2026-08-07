@@ -2,6 +2,7 @@ package com.solutions5060.aria.ai
 
 import android.content.Context
 import android.util.Log
+import com.solutions5060.aria.security.SecurePrefs
 import com.solutions5060.aria.service.SipEngineHolder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,6 +23,7 @@ object CallTranscription {
     private const val TAG = "CallTranscription"
     private const val PREFS = "aria_prefs"
     private const val KEY_ENABLED = "ai_transcribe_calls"
+    private const val KEY_INSIGHT_KEY = "ai_insight_key"
 
     /** Call ids captured this session, so a stop can never run without a start. */
     private val capturing = mutableSetOf<String>()
@@ -35,12 +37,48 @@ object CallTranscription {
             .edit().putBoolean(KEY_ENABLED, enabled).apply()
     }
 
+    /**
+     * The key transcripts are encrypted with at rest, created on first use.
+     *
+     * It lives in [SecurePrefs], which is backed by the Android keystore, so
+     * the database is readable only on this device and only by this app. The
+     * Rust side never generates or stores a key — losing this one means the
+     * stored transcripts are gone, which is the intended failure mode.
+     */
+    private fun insightKey(context: Context): ByteArray {
+        SecurePrefs.getString(context, KEY_INSIGHT_KEY, null)?.let {
+            val existing = android.util.Base64.decode(it, android.util.Base64.NO_WRAP)
+            if (existing.size == 32) return existing
+            Log.w(TAG, "Stored insight key was malformed; generating a new one")
+        }
+        val fresh = ByteArray(32).also { java.security.SecureRandom().nextBytes(it) }
+        SecurePrefs.putString(
+            context,
+            KEY_INSIGHT_KEY,
+            android.util.Base64.encodeToString(fresh, android.util.Base64.NO_WRAP),
+        )
+        return fresh
+    }
+
+    /**
+     * Bring up the AI engine with encrypted transcript storage.
+     *
+     * Safe to call repeatedly: the engine replaces its state each time, and
+     * both the model screen and the call path need it initialised.
+     */
+    suspend fun init(context: Context) = withContext(Dispatchers.IO) {
+        SipEngineHolder.engine?.aiInit(
+            context.filesDir.resolve("ai").absolutePath,
+            insightKey(context).toUByteArray().toList(),
+        )
+    }
+
     /** True when this build has the models compiled in and a speech model is installed. */
     suspend fun isReady(context: Context): Boolean = withContext(Dispatchers.IO) {
         val engine = SipEngineHolder.engine ?: return@withContext false
         if (!engine.aiAvailable()) return@withContext false
         try {
-            engine.aiInit(context.filesDir.resolve("ai").absolutePath)
+            init(context)
             engine.aiModels().any { it.kind == "stt" && it.installed }
         } catch (e: Exception) {
             Log.w(TAG, "AI readiness probe failed: ${e.message}")

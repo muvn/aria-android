@@ -859,6 +859,14 @@ internal open class UniffiVTableCallbackInterfacePlatformAudioBridge(
 
 
 
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -892,14 +900,22 @@ internal interface UniffiLib : Library {
     ): Byte
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_cancel_download(`ptr`: Pointer,`modelId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_clear_insights(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
+    ): Long
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_delete_insight(`ptr`: Pointer,`callId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_delete_model(`ptr`: Pointer,`modelId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_discard_capture(`ptr`: Pointer,`callId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_download_progress(`ptr`: Pointer,`modelId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_init(`ptr`: Pointer,`storageDir`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_init(`ptr`: Pointer,`storageDir`: RustBuffer.ByValue,`insightKey`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_insight(`ptr`: Pointer,`callId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_insights(`ptr`: Pointer,`limit`: Int,`offset`: Int,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_models(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_start_capture(`ptr`: Pointer,`callId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -1078,6 +1094,10 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_cancel_download(
     ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_clear_insights(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_delete_insight(
+    ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_delete_model(
     ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_discard_capture(
@@ -1085,6 +1105,10 @@ internal interface UniffiLib : Library {
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_download_progress(
     ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_init(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_insight(
+    ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_insights(
     ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_models(
     ): Short
@@ -1182,6 +1206,12 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_cancel_download() != 31065.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_clear_insights() != 22485.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_delete_insight() != 11113.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_delete_model() != 63945.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -1191,7 +1221,13 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_download_progress() != 32712.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_init() != 51124.toShort()) {
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_init() != 26795.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_insight() != 35675.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_insights() != 27091.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_models() != 23891.toShort()) {
@@ -1336,6 +1372,29 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
  * @suppress
  * */
 object NoPointer
+
+/**
+ * @suppress
+ */
+public object FfiConverterUByte: FfiConverter<UByte, Byte> {
+    override fun lift(value: Byte): UByte {
+        return value.toUByte()
+    }
+
+    override fun read(buf: ByteBuffer): UByte {
+        return lift(buf.get())
+    }
+
+    override fun lower(value: UByte): Byte {
+        return value.toByte()
+    }
+
+    override fun allocationSize(value: UByte) = 1UL
+
+    override fun write(value: UByte, buf: ByteBuffer) {
+        buf.put(value.toByte())
+    }
+}
 
 /**
  * @suppress
@@ -1760,6 +1819,13 @@ public interface AriaMobileEngineInterface {
     
     fun `aiCancelDownload`(`modelId`: kotlin.String)
     
+    /**
+     * Returns how many insights were deleted.
+     */
+    fun `aiClearInsights`(): kotlin.ULong
+    
+    fun `aiDeleteInsight`(`callId`: kotlin.String): kotlin.Boolean
+    
     fun `aiDeleteModel`(`modelId`: kotlin.String)
     
     /**
@@ -1775,7 +1841,17 @@ public interface AriaMobileEngineInterface {
      * The host owns the path — iOS Application Support, Android filesDir — so
      * nothing here hardcodes a platform location.
      */
-    fun `aiInit`(`storageDir`: kotlin.String)
+    fun `aiInit`(`storageDir`: kotlin.String, `insightKey`: List<kotlin.UByte>?)
+    
+    /**
+     * One stored insight in full, including its transcript.
+     */
+    fun `aiInsight`(`callId`: kotlin.String): AiCallInsight?
+    
+    /**
+     * Past insights, newest first. Empty when transcripts are not stored.
+     */
+    fun `aiInsights`(`limit`: kotlin.UInt, `offset`: kotlin.UInt): List<AiInsightSummary>
     
     /**
      * Models this device could install, annotated with whether it can run them.
@@ -2050,6 +2126,33 @@ open class AriaMobileEngine: Disposable, AutoCloseable, AriaMobileEngineInterfac
     
 
     
+    /**
+     * Returns how many insights were deleted.
+     */override fun `aiClearInsights`(): kotlin.ULong {
+            return FfiConverterULong.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_clear_insights(
+        it, _status)
+}
+    }
+    )
+    }
+    
+
+    override fun `aiDeleteInsight`(`callId`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_delete_insight(
+        it, FfiConverterString.lower(`callId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
     @Throws(MobileException::class)override fun `aiDeleteModel`(`modelId`: kotlin.String)
         = 
     callWithPointer {
@@ -2094,15 +2197,45 @@ open class AriaMobileEngine: Disposable, AutoCloseable, AriaMobileEngineInterfac
      * The host owns the path — iOS Application Support, Android filesDir — so
      * nothing here hardcodes a platform location.
      */
-    @Throws(MobileException::class)override fun `aiInit`(`storageDir`: kotlin.String)
+    @Throws(MobileException::class)override fun `aiInit`(`storageDir`: kotlin.String, `insightKey`: List<kotlin.UByte>?)
         = 
     callWithPointer {
     uniffiRustCallWithError(MobileException) { _status ->
     UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_init(
-        it, FfiConverterString.lower(`storageDir`),_status)
+        it, FfiConverterString.lower(`storageDir`),FfiConverterOptionalSequenceUByte.lower(`insightKey`),_status)
 }
     }
     
+    
+
+    
+    /**
+     * One stored insight in full, including its transcript.
+     */override fun `aiInsight`(`callId`: kotlin.String): AiCallInsight? {
+            return FfiConverterOptionalTypeAiCallInsight.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_insight(
+        it, FfiConverterString.lower(`callId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Past insights, newest first. Empty when transcripts are not stored.
+     */override fun `aiInsights`(`limit`: kotlin.UInt, `offset`: kotlin.UInt): List<AiInsightSummary> {
+            return FfiConverterSequenceTypeAiInsightSummary.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_insights(
+        it, FfiConverterUInt.lower(`limit`),FfiConverterUInt.lower(`offset`),_status)
+}
+    }
+    )
+    }
     
 
     
@@ -2512,9 +2645,6 @@ public object FfiConverterTypeAriaMobileEngine: FfiConverter<AriaMobileEngine, P
 
 
 
-/**
- * The finished result for one call.
- */
 data class AiCallInsight (
     var `callId`: kotlin.String, 
     var `createdAt`: kotlin.Long, 
@@ -2622,6 +2752,50 @@ public object FfiConverterTypeAiDownloadProgress: FfiConverterRustBuffer<AiDownl
             FfiConverterULong.write(value.`totalBytes`, buf)
             FfiConverterString.write(value.`state`, buf)
             FfiConverterOptionalString.write(value.`error`, buf)
+    }
+}
+
+
+
+/**
+ * The finished result for one call.
+ * A stored insight in list form, without the transcript text.
+ */
+data class AiInsightSummary (
+    var `callId`: kotlin.String, 
+    var `createdAt`: kotlin.Long, 
+    var `durationSecs`: kotlin.UInt, 
+    var `status`: kotlin.String
+) {
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeAiInsightSummary: FfiConverterRustBuffer<AiInsightSummary> {
+    override fun read(buf: ByteBuffer): AiInsightSummary {
+        return AiInsightSummary(
+            FfiConverterString.read(buf),
+            FfiConverterLong.read(buf),
+            FfiConverterUInt.read(buf),
+            FfiConverterString.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: AiInsightSummary) = (
+            FfiConverterString.allocationSize(value.`callId`) +
+            FfiConverterLong.allocationSize(value.`createdAt`) +
+            FfiConverterUInt.allocationSize(value.`durationSecs`) +
+            FfiConverterString.allocationSize(value.`status`)
+    )
+
+    override fun write(value: AiInsightSummary, buf: ByteBuffer) {
+            FfiConverterString.write(value.`callId`, buf)
+            FfiConverterLong.write(value.`createdAt`, buf)
+            FfiConverterUInt.write(value.`durationSecs`, buf)
+            FfiConverterString.write(value.`status`, buf)
     }
 }
 
@@ -3596,6 +3770,38 @@ public object FfiConverterOptionalString: FfiConverterRustBuffer<kotlin.String?>
 /**
  * @suppress
  */
+public object FfiConverterOptionalTypeAiCallInsight: FfiConverterRustBuffer<AiCallInsight?> {
+    override fun read(buf: ByteBuffer): AiCallInsight? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeAiCallInsight.read(buf)
+    }
+
+    override fun allocationSize(value: AiCallInsight?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeAiCallInsight.allocationSize(value)
+        }
+    }
+
+    override fun write(value: AiCallInsight?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeAiCallInsight.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterOptionalTypeAiDownloadProgress: FfiConverterRustBuffer<AiDownloadProgress?> {
     override fun read(buf: ByteBuffer): AiDownloadProgress? {
         if (buf.get().toInt() == 0) {
@@ -3692,6 +3898,66 @@ public object FfiConverterOptionalTypeMediaStats: FfiConverterRustBuffer<MediaSt
 /**
  * @suppress
  */
+public object FfiConverterOptionalSequenceUByte: FfiConverterRustBuffer<List<kotlin.UByte>?> {
+    override fun read(buf: ByteBuffer): List<kotlin.UByte>? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterSequenceUByte.read(buf)
+    }
+
+    override fun allocationSize(value: List<kotlin.UByte>?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterSequenceUByte.allocationSize(value)
+        }
+    }
+
+    override fun write(value: List<kotlin.UByte>?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterSequenceUByte.write(value, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceUByte: FfiConverterRustBuffer<List<kotlin.UByte>> {
+    override fun read(buf: ByteBuffer): List<kotlin.UByte> {
+        val len = buf.getInt()
+        return List<kotlin.UByte>(len) {
+            FfiConverterUByte.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<kotlin.UByte>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterUByte.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<kotlin.UByte>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterUByte.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
 public object FfiConverterSequenceShort: FfiConverterRustBuffer<List<kotlin.Short>> {
     override fun read(buf: ByteBuffer): List<kotlin.Short> {
         val len = buf.getInt()
@@ -3738,6 +4004,34 @@ public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.Str
         buf.putInt(value.size)
         value.iterator().forEach {
             FfiConverterString.write(it, buf)
+        }
+    }
+}
+
+
+
+
+/**
+ * @suppress
+ */
+public object FfiConverterSequenceTypeAiInsightSummary: FfiConverterRustBuffer<List<AiInsightSummary>> {
+    override fun read(buf: ByteBuffer): List<AiInsightSummary> {
+        val len = buf.getInt()
+        return List<AiInsightSummary>(len) {
+            FfiConverterTypeAiInsightSummary.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<AiInsightSummary>): ULong {
+        val sizeForLength = 4UL
+        val sizeForItems = value.map { FfiConverterTypeAiInsightSummary.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<AiInsightSummary>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.iterator().forEach {
+            FfiConverterTypeAiInsightSummary.write(it, buf)
         }
     }
 }

@@ -39,6 +39,7 @@ import com.solutions5060.aria.ui.history.HistoryScreen
 import com.solutions5060.aria.ui.settings.SettingsScreen
 import com.solutions5060.aria.ui.settings.TranscriptionScreen
 import com.solutions5060.aria.ui.setup.SetupScreen
+import com.solutions5060.aria.ui.transcripts.TranscriptsScreen
 import com.solutions5060.aria.ui.splash.SplashScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -521,10 +522,14 @@ private fun MainApp(
                     SettingsScreen(
                         onSignOut = onSignOut,
                         onOpenTranscription = { navController.navigate("transcription") },
+                        onOpenTranscripts = { navController.navigate("transcripts") },
                     )
                 }
                 composable("transcription") {
                     TranscriptionScreen(onBack = { navController.popBackStack() })
+                }
+                composable("transcripts") {
+                    TranscriptsScreen(onBack = { navController.popBackStack() })
                 }
             }
         }

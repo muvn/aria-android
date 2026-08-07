@@ -44,9 +44,7 @@ fun TranscriptionScreen(onBack: () -> Unit = {}) {
     LaunchedEffect(supported) {
         if (!supported || engine == null) return@LaunchedEffect
         try {
-            withContext(Dispatchers.IO) {
-                engine.aiInit(context.filesDir.resolve("ai").absolutePath)
-            }
+            CallTranscription.init(context)
             models = engine.aiModels()
         } catch (e: Exception) {
             initError = e.message ?: "could not start on-device AI"
