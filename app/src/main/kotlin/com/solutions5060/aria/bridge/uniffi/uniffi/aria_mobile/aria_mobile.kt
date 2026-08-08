@@ -867,6 +867,8 @@ internal open class UniffiVTableCallbackInterfacePlatformAudioBridge(
 
 
 
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -926,6 +928,8 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_transcribe(`ptr`: Pointer,`callId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_aria_mobile_core_fn_method_ariamobileengine_call_is_encrypted(`ptr`: Pointer,`callId`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Byte
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_check_remote_hangup(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_aria_mobile_core_fn_method_ariamobileengine_get_active_call(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1120,6 +1124,8 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_transcribe(
     ): Short
+    fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_call_is_encrypted(
+    ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_check_remote_hangup(
     ): Short
     fun uniffi_aria_mobile_core_checksum_method_ariamobileengine_get_active_call(
@@ -1243,6 +1249,9 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_ai_transcribe() != 4868.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_call_is_encrypted() != 12431.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_aria_mobile_core_checksum_method_ariamobileengine_check_remote_hangup() != 44253.toShort()) {
@@ -1809,12 +1818,6 @@ public interface AriaMobileEngineInterface {
      */
     fun `acceptIncomingCall`(`callToken`: kotlin.String, `preferredCodecs`: List<AudioCodec>): CallInfo
     
-    /**
-     * Was this binary built with transcription support?
-     *
-     * Lets one app package probe at runtime instead of the host guessing from
-     * its build flavour.
-     */
     fun `aiAvailable`(): kotlin.Boolean
     
     fun `aiCancelDownload`(`modelId`: kotlin.String)
@@ -1883,6 +1886,19 @@ public interface AriaMobileEngineInterface {
      * and device. Call it off the UI thread.
      */
     fun `aiTranscribe`(`callId`: kotlin.String): AiCallInsight
+    
+    /**
+     * Was this binary built with transcription support?
+     *
+     * Lets one app package probe at runtime instead of the host guessing from
+     * its build flavour.
+     * Whether media on this call is actually encrypted.
+     *
+     * Reports what SRTP negotiation produced, not what was configured — a UI
+     * that derives a padlock from settings lies whenever the peer declines
+     * the crypto line.
+     */
+    fun `callIsEncrypted`(`callId`: kotlin.String): kotlin.Boolean
     
     /**
      * Check if any active call was ended by the remote party.
@@ -2096,13 +2112,7 @@ open class AriaMobileEngine: Disposable, AutoCloseable, AriaMobileEngineInterfac
     }
     
 
-    
-    /**
-     * Was this binary built with transcription support?
-     *
-     * Lets one app package probe at runtime instead of the host guessing from
-     * its build flavour.
-     */override fun `aiAvailable`(): kotlin.Boolean {
+    override fun `aiAvailable`(): kotlin.Boolean {
             return FfiConverterBoolean.lift(
     callWithPointer {
     uniffiRustCall() { _status ->
@@ -2312,6 +2322,29 @@ open class AriaMobileEngine: Disposable, AutoCloseable, AriaMobileEngineInterfac
     callWithPointer {
     uniffiRustCallWithError(MobileException) { _status ->
     UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_ai_transcribe(
+        it, FfiConverterString.lower(`callId`),_status)
+}
+    }
+    )
+    }
+    
+
+    
+    /**
+     * Was this binary built with transcription support?
+     *
+     * Lets one app package probe at runtime instead of the host guessing from
+     * its build flavour.
+     * Whether media on this call is actually encrypted.
+     *
+     * Reports what SRTP negotiation produced, not what was configured — a UI
+     * that derives a padlock from settings lies whenever the peer declines
+     * the crypto line.
+     */override fun `callIsEncrypted`(`callId`: kotlin.String): kotlin.Boolean {
+            return FfiConverterBoolean.lift(
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_aria_mobile_core_fn_method_ariamobileengine_call_is_encrypted(
         it, FfiConverterString.lower(`callId`),_status)
 }
     }

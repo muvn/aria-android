@@ -60,7 +60,9 @@ fun parseProvisioningUri(uriString: String): ProvisioningCredentials? {
         val passEncoded = uri.getQueryParameter("pass") ?: return null
         val password = String(Base64.decode(passEncoded, Base64.DEFAULT))
         val name = uri.getQueryParameter("name") ?: ""
-        val transport = uri.getQueryParameter("transport") ?: "udp"
+        // Normalised here; an unrecognised value is rejected by
+        // validateProvisioning rather than silently becoming udp.
+        val transport = (uri.getQueryParameter("transport") ?: "udp").lowercase()
         val voicemail = uri.getQueryParameter("vm") ?: ""
         val apiUrl = uri.getQueryParameter("api") ?: ""
         val tenantDomain = uri.getQueryParameter("tenant") ?: ""
@@ -124,8 +126,19 @@ fun validateProvisioning(creds: ProvisioningCredentials): String? {
     ) {
         return "Rejected: the API endpoint must use https with a valid hostname."
     }
+    // The transport was the one provisioning field taken verbatim: anything
+    // unrecognised fell through to the "udp" default, so a QR could quietly
+    // downgrade signalling to cleartext. An unknown value is now refused
+    // outright rather than silently becoming the weakest option.
+    if (creds.transport !in ALLOWED_TRANSPORTS) {
+        return "Rejected: unsupported SIP transport \"${creds.transport}\"."
+    }
     return null
 }
+
+/// The transports this client actually implements. Anything else is a
+/// provisioning error, not a reason to fall back.
+private val ALLOWED_TRANSPORTS = setOf("udp", "tcp", "tls")
 
 @Composable
 fun QRScannerScreen(
