@@ -25,8 +25,12 @@
     HttpsURLConnection / HttpURLConnection / the platform socket-trust APIs;
     it does NOT inspect or block arbitrary raw DatagramSocket / Socket
     traffic. Denying cleartext here therefore does not break UDP/TCP SIP
-    registration or calling. (Confidentiality of SIP itself is addressed
-    separately by preferring the "tls" SIP transport + SRTP — see audit M3.)
+    registration or calling. (Media confidentiality comes from
+    SDES-SRTP, which aria-mobile-core now offers on every call. SIP
+    signalling itself is NOT confidential by default: transport defaults to
+    "udp" at every call site and the QR payload sets it without an
+    allow-list. This comment previously claimed both were handled; neither
+    was.)
 
     The domain-config below re-permits cleartext ONLY for loopback / the
     Android-emulator host alias, so a developer can point the app at a local
