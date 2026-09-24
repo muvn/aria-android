@@ -13,6 +13,9 @@ jobs:
     # 1. 拉取代码
     - name: Checkout code
       uses: actions/checkout@v4
+  # 新增：手动拉取 Rust 核心库到上一级目录，以满足 ../aria-mobile-core 的路径要求
+    - name: Clone aria-mobile-core
+      run: git clone https://github.com/5060-Solutions/aria-mobile-core.git ../aria-mobile-core
 
     # 2. 配置 Java 17 开发环境 (Android 编译基础)
     - name: Set up JDK 17
