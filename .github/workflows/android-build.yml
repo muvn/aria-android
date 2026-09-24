@@ -4,6 +4,124 @@ on:
   push:
     branches: [ "main", "master" ]
   workflow_dispatch:
+    inputs:
+      ai_level:
+        description: 'AI Build Level (0=SIP only, 1=Transcription, 2=+Summaries)'
+        required: true
+        default: '0'
+        type: choice
+        options:
+          - '0'
+          - '1'
+          - '2'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+
+    - name: Force Init Submodules
+      run: git submodule update --init --recursive
+
+    # 1. 批量拉取所有相关联的生态核心库，并放在上一级目录
+    - name: Clone sibling core libraries
+      run: |
+        echo "Cloning aria-mobile-core..."
+        git clone --recurse-submodules https://github.com/5060-Solutions/aria-mobile-core.git ../aria-mobile-core
+        
+        echo "Cloning aria-ai-core (Required for AI features & CMake toolchains)..."
+        git clone --recurse-submodules https://github.com/5060-Solutions/aria-ai-core.git ../aria-ai-core || true
+        
+        echo "Cloning other possible ecosystem libraries..."
+        git clone --recurse-submodules https://github.com/5060-Solutions/aria-sip-core.git ../aria-sip-core || true
+        git clone --recurse-submodules https://github.com/5060-Solutions/rtp-engine.git ../rtp-engine || true
+
+    # 2. 补全 Vendor 目录和工作区（解决 bindgen 等 C/C++ 依赖问题）
+    - name: Setup vendor dependencies
+      run: |
+        mkdir -p ../vendor
+        if [ -d "vendor" ]; then cp -r vendor/* ../vendor/ || true; fi
+        
+        if [ ! -d "../vendor/llama-cpp-sys-2" ]; then
+          git clone https://github.com/utilityai/llama-cpp-rs.git /tmp/llama-cpp-rs
+          cp -r /tmp/llama-cpp-rs/llama-cpp-sys-2 ../vendor/
+        fi
+        
+        if [ ! -d "../vendor/whisper-rs-sys" ]; then
+          git clone https://github.com/tazz4843/whisper-rs.git /tmp/whisper-rs
+          if [ -d "/tmp/whisper-rs/whisper-rs-sys" ]; then
+            cp -r /tmp/whisper-rs/whisper-rs-sys ../vendor/
+          elif [ -d "/tmp/whisper-rs/sys" ]; then
+            cp -r /tmp/whisper-rs/sys ../vendor/whisper-rs-sys
+          fi
+        fi
+        
+        echo '[workspace]' > ../vendor/Cargo.toml
+        echo 'members = ["llama-cpp-sys-2", "whisper-rs-sys"]' >> ../vendor/Cargo.toml
+        if [ -f "/tmp/llama-cpp-rs/Cargo.toml" ]; then
+          sed -n '/\[workspace.dependencies\]/,$p' /tmp/llama-cpp-rs/Cargo.toml >> ../vendor/Cargo.toml
+        fi
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
+
+    # 3. 注入脚本所需的全部 NDK 环境变量
+    - name: Setup Android NDK
+      run: |
+        echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
+        echo "NDK_ROOT=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
+
+    - name: Create mock google-services.json
+      run: |
+        echo '{
+          "project_info": { "project_number": "123456789012", "project_id": "mock-project" },
+          "client": [{
+            "client_info": { 
+              "mobilesdk_app_id": "1:123456789012:android:abcdef1234567890", 
+              "android_client_info": { "package_name": "com.solutions5060.aria" } 
+            }
+          }]
+        }' > app/google-services.json
+
+    - name: Grant execute permissions
+      run: |
+        chmod +x build-rust.sh
+        chmod +x gradlew
+
+    # 4. 执行原项目构建脚本，通过环境变量 AI 传入用户选项
+    - name: Build Rust Core
+      env:
+        AI: ${{ github.event.inputs.ai_level || '0' }}
+      run: ./build-rust.sh release
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: aria-android-apk
+        path: app/build/outputs/apk/debug/*.apkname: Build Aria Android
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build:
