@@ -10,22 +10,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. 拉取当前 Android 代码，配置自动拉取子模块
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         submodules: recursive
         fetch-depth: 0
 
-    # 2. 强制手动初始化子模块（双重保险，确保 vendor 目录下的库被完整下载）
     - name: Force Init Submodules
       run: git submodule update --init --recursive
 
-    # 3. 拉取同级的 aria-mobile-core 核心库，并强制包含其子模块
     - name: Clone aria-mobile-core
       run: git clone --recurse-submodules https://github.com/5060-Solutions/aria-mobile-core.git ../aria-mobile-core
 
-    # 4. 配置 Java 17 开发环境 (Android 编译需要)
+    - name: Setup vendor dependencies
+      run: |
+        if [ -d "vendor/llama-cpp-sys-2" ]; then
+          echo "Found vendor in aria-android, copying to parent workspace..."
+          mkdir -p ../vendor
+          cp -r vendor/llama-cpp-sys-2 ../vendor/
+        else
+          echo "Vendor not found locally. Cloning into ../vendor..."
+          mkdir -p ../vendor
+          
+          git clone https://github.com/5060-Solutions/llama-cpp-sys-2.git ../vendor/llama-cpp-sys-2 || {
+            echo "Failed to clone from 5060-Solutions. Trying official upstream..."
+            git clone https://github.com/utilityai/llama-cpp-rs.git /tmp/llama-cpp-rs
+            cp -r /tmp/llama-cpp-rs/llama-cpp-sys-2 ../vendor/
+          }
+        fi
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
@@ -33,18 +46,14 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    # 5. 配置 Rust 工具链及所需的 Android 目标平台架构
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
       with:
         targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
 
-    # 6. 配置 Android NDK 环境变量 (使用 GitHub Runner 内置的 NDK)
     - name: Set ANDROID_NDK_HOME
       run: echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
 
-    # 7. 注入临时的 Firebase 配置文件
-    # 这是为了绕过 google-services 插件的检查，防止因缺少配置导致构建失败
     - name: Create mock google-services.json
       run: |
         echo '{
@@ -57,21 +66,17 @@ jobs:
           }]
         }' > app/google-services.json
 
-    # 8. 赋予构建脚本和 Gradle 执行权限
     - name: Grant execute permission for scripts
       run: |
         chmod +x build-rust.sh
         chmod +x gradlew
 
-    # 9. 编译 Rust 核心代码，生成 Android 的 .so 动态链接库和 UniFFI 绑定
     - name: Build Rust Core
       run: ./build-rust.sh
 
-    # 10. 执行 Android Gradle 打包生成 Debug 版本 APK
     - name: Build Debug APK
       run: ./gradlew assembleDebug
 
-    # 11. 收集并上传 APK，供开发者下载
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
