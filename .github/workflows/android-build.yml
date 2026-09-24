@@ -24,19 +24,26 @@ jobs:
 
     - name: Setup vendor dependencies
       run: |
+        mkdir -p ../vendor
+        
+        # 1. 如果当前仓库自带了 vendor，优先使用自带的
         if [ -d "vendor/llama-cpp-sys-2" ]; then
-          echo "Found vendor in aria-android, copying to parent workspace..."
-          mkdir -p ../vendor
-          cp -r vendor/llama-cpp-sys-2 ../vendor/
-        else
-          echo "Vendor not found locally. Cloning into ../vendor..."
-          mkdir -p ../vendor
+          echo "Found vendor in aria-android, copying..."
+          cp -r vendor/* ../vendor/
+        fi
+        
+        # 2. 如果缺少该依赖，则从官方拉取并重建 Workspace 环境
+        if [ ! -d "../vendor/llama-cpp-sys-2" ]; then
+          echo "Vendor not found locally. Cloning official upstream..."
+          git clone https://github.com/utilityai/llama-cpp-rs.git /tmp/llama-cpp-rs
+          cp -r /tmp/llama-cpp-rs/llama-cpp-sys-2 ../vendor/
           
-          git clone https://github.com/5060-Solutions/llama-cpp-sys-2.git ../vendor/llama-cpp-sys-2 || {
-            echo "Failed to clone from 5060-Solutions. Trying official upstream..."
-            git clone https://github.com/utilityai/llama-cpp-rs.git /tmp/llama-cpp-rs
-            cp -r /tmp/llama-cpp-rs/llama-cpp-sys-2 ../vendor/
-          }
+          # 【关键修复】：创建一个工作区根节点，解决 bindgen 继承报错
+          echo '[workspace]' > ../vendor/Cargo.toml
+          echo 'members = ["llama-cpp-sys-2"]' >> ../vendor/Cargo.toml
+          
+          # 将官方仓库的依赖配置（包含 bindgen、cc 等版本）无缝提取到我们新建的工作区中
+          sed -n '/\[workspace.dependencies\]/,$p' /tmp/llama-cpp-rs/Cargo.toml >> ../vendor/Cargo.toml
         fi
 
     - name: Set up JDK 17
