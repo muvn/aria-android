@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1. 拉取您的 Android 代码，并递归获取可能存在的子模块
     - name: Checkout code
       uses: actions/checkout@v4
       with:
@@ -19,49 +20,21 @@ jobs:
     - name: Force Init Submodules
       run: git submodule update --init --recursive
 
-    - name: Clone sibling core libraries
+    # 2. 拉取必备的核心库，并处理 Cargo 的依赖预检查
+    - name: Clone required core libraries
       run: |
         echo "Cloning aria-mobile-core..."
         git clone --recurse-submodules https://github.com/5060-Solutions/aria-mobile-core.git ../aria-mobile-core
         
-        echo "Cloning aria-ai-core (needed just for Cargo resolution)..."
+        echo "Cloning aria-ai-core just to satisfy Cargo workspace resolution..."
         git clone --recurse-submodules https://github.com/5060-Solutions/aria-ai-core.git ../aria-ai-core || true
         
-        # 【核心修复】：替换掉报错的 system-ggml，欺骗 Cargo 通过依赖合法性检查
+        # 核心逻辑：替换掉导致报错的 system-ggml 依赖，直接放行 Cargo 预检查
         if [ -f "../aria-ai-core/Cargo.toml" ]; then
-          echo "Patching system-ggml requirement out of aria-ai-core..."
           sed -i 's/"system-ggml"/"coreml"/g' ../aria-ai-core/Cargo.toml
         fi
-        
-        echo "Cloning other possible ecosystem libraries..."
-        git clone --recurse-submodules https://github.com/5060-Solutions/aria-sip-core.git ../aria-sip-core || true
-        git clone --recurse-submodules https://github.com/5060-Solutions/rtp-engine.git ../rtp-engine || true
 
-    - name: Setup vendor dependencies (Standard versions)
-      run: |
-        mkdir -p ../vendor
-        if [ -d "vendor" ]; then cp -r vendor/* ../vendor/ || true; fi
-        
-        if [ ! -d "../vendor/llama-cpp-sys-2" ]; then
-          git clone https://github.com/utilityai/llama-cpp-rs.git /tmp/llama-cpp-rs
-          cp -r /tmp/llama-cpp-rs/llama-cpp-sys-2 ../vendor/ || true
-        fi
-        
-        if [ ! -d "../vendor/whisper-rs-sys" ]; then
-          git clone https://github.com/tazz4843/whisper-rs.git /tmp/whisper-rs
-          if [ -d "/tmp/whisper-rs/whisper-rs-sys" ]; then
-            cp -r /tmp/whisper-rs/whisper-rs-sys ../vendor/
-          elif [ -d "/tmp/whisper-rs/sys" ]; then
-            cp -r /tmp/whisper-rs/sys ../vendor/whisper-rs-sys
-          fi
-        fi
-        
-        echo '[workspace]' > ../vendor/Cargo.toml
-        echo 'members = ["llama-cpp-sys-2", "whisper-rs-sys"]' >> ../vendor/Cargo.toml
-        if [ -f "/tmp/llama-cpp-rs/Cargo.toml" ]; then
-          sed -n '/\[workspace.dependencies\]/,$p' /tmp/llama-cpp-rs/Cargo.toml >> ../vendor/Cargo.toml
-        fi
-
+    # 3. 配置 Java 17 (Android Gradle 编译要求)
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
@@ -69,41 +42,35 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    # 4. 配置 Rust 及 Android 目标架构
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
       with:
         targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
 
+    # 5. 配置构建脚本所需的 NDK 环境变量
     - name: Setup Android NDK
       run: |
         echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
         echo "NDK_ROOT=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
 
-    - name: Create mock google-services.json
-      run: |
-        echo '{
-          "project_info": { "project_number": "123456789012", "project_id": "mock-project" },
-          "client": [{
-            "client_info": { 
-              "mobilesdk_app_id": "1:123456789012:android:abcdef1234567890", 
-              "android_client_info": { "package_name": "com.solutions5060.aria" } 
-            }
-          }]
-        }' > app/google-services.json
-
+    # 6. 赋予脚本执行权限
     - name: Grant execute permissions
       run: |
         chmod +x build-rust.sh
         chmod +x gradlew
 
-    - name: Build Rust Core
+    # 7. 编译 Rust 核心库 (AI=0 表示只编译纯 SIP 通话功能)
+    - name: Build Rust Core (SIP Only)
       env:
         AI: '0'
       run: ./build-rust.sh release
 
+    # 8. 执行 Android 打包
     - name: Build Debug APK
       run: ./gradlew assembleDebug
 
+    # 9. 输出 APK 产物
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
