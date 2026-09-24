@@ -10,12 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. 拉取代码
+
+    # 1. 拉取当前 Android 代码，并递归拉取所有子模块
     - name: Checkout code
       uses: actions/checkout@v4
-  # 新增：手动拉取 Rust 核心库到上一级目录，以满足 ../aria-mobile-core 的路径要求
+      with:
+        submodules: recursive
+
+    # 2. 拉取 aria-mobile-core，必须添加 --recurse-submodules 参数
     - name: Clone aria-mobile-core
-      run: git clone https://github.com/5060-Solutions/aria-mobile-core.git ../aria-mobile-core
+      run: git clone --recurse-submodules https://github.com/5060-Solutions/aria-mobile-core.git ../aria-mobile-core
 
     # 2. 配置 Java 17 开发环境 (Android 编译基础)
     - name: Set up JDK 17
