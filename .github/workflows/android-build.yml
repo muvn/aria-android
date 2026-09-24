@@ -29,32 +29,32 @@ jobs:
     - name: Force Init Submodules
       run: git submodule update --init --recursive
 
-    # 1. 批量拉取所有相关联的生态核心库，并放在上一级目录
     - name: Clone sibling core libraries
       run: |
         echo "Cloning aria-mobile-core..."
         git clone --recurse-submodules https://github.com/5060-Solutions/aria-mobile-core.git ../aria-mobile-core
         
-        echo "Cloning aria-ai-core (Required for AI features & CMake toolchains)..."
+        echo "Cloning aria-ai-core..."
         git clone --recurse-submodules https://github.com/5060-Solutions/aria-ai-core.git ../aria-ai-core || true
         
         echo "Cloning other possible ecosystem libraries..."
         git clone --recurse-submodules https://github.com/5060-Solutions/aria-sip-core.git ../aria-sip-core || true
         git clone --recurse-submodules https://github.com/5060-Solutions/rtp-engine.git ../rtp-engine || true
 
-    # 2. 补全 Vendor 目录和工作区（解决 bindgen 等 C/C++ 依赖问题）
     - name: Setup vendor dependencies
       run: |
         mkdir -p ../vendor
         if [ -d "vendor" ]; then cp -r vendor/* ../vendor/ || true; fi
         
         if [ ! -d "../vendor/llama-cpp-sys-2" ]; then
-          git clone https://github.com/utilityai/llama-cpp-rs.git /tmp/llama-cpp-rs
-          cp -r /tmp/llama-cpp-rs/llama-cpp-sys-2 ../vendor/
+          echo "Cloning customized llama-cpp-rs fork..."
+          git clone https://github.com/5060-Solutions/llama-cpp-rs.git /tmp/llama-cpp-rs || git clone https://github.com/utilityai/llama-cpp-rs.git /tmp/llama-cpp-rs
+          cp -r /tmp/llama-cpp-rs/llama-cpp-sys-2 ../vendor/ || true
         fi
         
         if [ ! -d "../vendor/whisper-rs-sys" ]; then
-          git clone https://github.com/tazz4843/whisper-rs.git /tmp/whisper-rs
+          echo "Cloning customized whisper-rs fork (with system-ggml)..."
+          git clone https://github.com/5060-Solutions/whisper-rs.git /tmp/whisper-rs || git clone https://github.com/tazz4843/whisper-rs.git /tmp/whisper-rs
           if [ -d "/tmp/whisper-rs/whisper-rs-sys" ]; then
             cp -r /tmp/whisper-rs/whisper-rs-sys ../vendor/
           elif [ -d "/tmp/whisper-rs/sys" ]; then
@@ -80,7 +80,6 @@ jobs:
       with:
         targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
 
-    # 3. 注入脚本所需的全部 NDK 环境变量
     - name: Setup Android NDK
       run: |
         echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
@@ -103,7 +102,6 @@ jobs:
         chmod +x build-rust.sh
         chmod +x gradlew
 
-    # 4. 执行原项目构建脚本，通过环境变量 AI 传入用户选项
     - name: Build Rust Core
       env:
         AI: ${{ github.event.inputs.ai_level || '0' }}
