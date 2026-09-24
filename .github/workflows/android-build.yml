@@ -24,48 +24,18 @@ jobs:
         echo "Cloning aria-mobile-core..."
         git clone --recurse-submodules https://github.com/5060-Solutions/aria-mobile-core.git ../aria-mobile-core
         
-        echo "Cloning aria-ai-core just to satisfy Cargo workspace resolution..."
+        echo "Cloning aria-ai-core..."
         git clone --recurse-submodules https://github.com/5060-Solutions/aria-ai-core.git ../aria-ai-core || true
 
-    - name: Setup vendor dependencies (The Ultimate Fix)
+    - name: Setup vendor dependencies (From Official aria-vendor)
       run: |
-        mkdir -p ../vendor
-        if [ -d "vendor" ]; then cp -r vendor/* ../vendor/ || true; fi
+        # 直接拉取包含 system-ggml 补丁的官方 vendor 仓库
+        git clone https://github.com/5060-Solutions/aria-vendor.git ../vendor || true
         
-        # 1. 拉取官方 llama-cpp-rs
-        if [ ! -d "../vendor/llama-cpp-sys-2" ]; then
-          git clone https://github.com/utilityai/llama-cpp-rs.git /tmp/llama-cpp-rs || true
-          cp -r /tmp/llama-cpp-rs/llama-cpp-sys-2 ../vendor/ || true
-        fi
-        
-        # 2. 拉取官方 whisper-rs
-        if [ ! -d "../vendor/whisper-rs-sys" ]; then
-          git clone https://github.com/tazz4843/whisper-rs.git /tmp/whisper-rs || true
-          if [ -d "/tmp/whisper-rs/whisper-rs-sys" ]; then
-            cp -r /tmp/whisper-rs/whisper-rs-sys ../vendor/
-          elif [ -d "/tmp/whisper-rs/sys" ]; then
-            cp -r /tmp/whisper-rs/sys ../vendor/whisper-rs-sys
-          fi
-        fi
-        
-        # 3. 【暴力破解核心】：直接向底层依赖强行注入缺失的特性，完美骗过 Cargo
-        echo "Injecting system-ggml into whisper-rs-sys..."
-        if grep -q "\[features\]" ../vendor/whisper-rs-sys/Cargo.toml; then
-          sed -i 's/\[features\]/\[features\]\nsystem-ggml = \[\]/g' ../vendor/whisper-rs-sys/Cargo.toml
-        else
-          printf "\n[features]\nsystem-ggml = []\n" >> ../vendor/whisper-rs-sys/Cargo.toml
-        fi
-        
-        # 4. 双重保险：无视格式，直接暴力替换上层调用的文本
-        if [ -f "../aria-ai-core/Cargo.toml" ]; then
-          sed -i 's/system-ggml/coreml/g' ../aria-ai-core/Cargo.toml
-        fi
-        
-        # 构建工作区配置
-        echo '[workspace]' > ../vendor/Cargo.toml
-        echo 'members = ["llama-cpp-sys-2", "whisper-rs-sys"]' >> ../vendor/Cargo.toml
-        if [ -f "/tmp/llama-cpp-rs/Cargo.toml" ]; then
-          sed -n '/\[workspace.dependencies\]/,$p' /tmp/llama-cpp-rs/Cargo.toml >> ../vendor/Cargo.toml
+        # 确保 Cargo.toml 能够将它们正确识别为工作区成员
+        if [ -d "../vendor" ]; then
+          echo '[workspace]' > ../vendor/Cargo.toml
+          echo 'members = ["llama-cpp-sys-2", "whisper-rs-sys"]' >> ../vendor/Cargo.toml
         fi
 
     - name: Set up JDK 17
@@ -85,8 +55,10 @@ jobs:
         echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
         echo "NDK_ROOT=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
 
-    - name: Grant execute permissions
+    # 【核心修复】：动态替换脚本中硬编码的 macOS 工具链路径为 Linux 路径
+    - name: Fix macOS hardcoded path and grant permissions
       run: |
+        sed -i 's/darwin-x86_64/linux-x86_64/g' build-rust.sh
         chmod +x build-rust.sh
         chmod +x gradlew
 
