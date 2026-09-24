@@ -1,19 +1,9 @@
-name: Build Aria Android
+name: Build Aria Android (No AI)
 
 on:
   push:
     branches: [ "main", "master" ]
   workflow_dispatch:
-    inputs:
-      ai_level:
-        description: 'AI Build Level (0=SIP only, 1=Transcription, 2=+Summaries)'
-        required: true
-        default: '0'
-        type: choice
-        options:
-          - '0'
-          - '1'
-          - '2'
 
 jobs:
   build:
@@ -34,27 +24,31 @@ jobs:
         echo "Cloning aria-mobile-core..."
         git clone --recurse-submodules https://github.com/5060-Solutions/aria-mobile-core.git ../aria-mobile-core
         
-        echo "Cloning aria-ai-core..."
+        echo "Cloning aria-ai-core (needed just for Cargo resolution)..."
         git clone --recurse-submodules https://github.com/5060-Solutions/aria-ai-core.git ../aria-ai-core || true
+        
+        # 【核心修复】：替换掉报错的 system-ggml，欺骗 Cargo 通过依赖合法性检查
+        if [ -f "../aria-ai-core/Cargo.toml" ]; then
+          echo "Patching system-ggml requirement out of aria-ai-core..."
+          sed -i 's/"system-ggml"/"coreml"/g' ../aria-ai-core/Cargo.toml
+        fi
         
         echo "Cloning other possible ecosystem libraries..."
         git clone --recurse-submodules https://github.com/5060-Solutions/aria-sip-core.git ../aria-sip-core || true
         git clone --recurse-submodules https://github.com/5060-Solutions/rtp-engine.git ../rtp-engine || true
 
-    - name: Setup vendor dependencies
+    - name: Setup vendor dependencies (Standard versions)
       run: |
         mkdir -p ../vendor
         if [ -d "vendor" ]; then cp -r vendor/* ../vendor/ || true; fi
         
         if [ ! -d "../vendor/llama-cpp-sys-2" ]; then
-          echo "Cloning customized llama-cpp-rs fork..."
-          git clone https://github.com/5060-Solutions/llama-cpp-rs.git /tmp/llama-cpp-rs || git clone https://github.com/utilityai/llama-cpp-rs.git /tmp/llama-cpp-rs
+          git clone https://github.com/utilityai/llama-cpp-rs.git /tmp/llama-cpp-rs
           cp -r /tmp/llama-cpp-rs/llama-cpp-sys-2 ../vendor/ || true
         fi
         
         if [ ! -d "../vendor/whisper-rs-sys" ]; then
-          echo "Cloning customized whisper-rs fork (with system-ggml)..."
-          git clone https://github.com/5060-Solutions/whisper-rs.git /tmp/whisper-rs || git clone https://github.com/tazz4843/whisper-rs.git /tmp/whisper-rs
+          git clone https://github.com/tazz4843/whisper-rs.git /tmp/whisper-rs
           if [ -d "/tmp/whisper-rs/whisper-rs-sys" ]; then
             cp -r /tmp/whisper-rs/whisper-rs-sys ../vendor/
           elif [ -d "/tmp/whisper-rs/sys" ]; then
@@ -104,7 +98,7 @@ jobs:
 
     - name: Build Rust Core
       env:
-        AI: ${{ github.event.inputs.ai_level || '0' }}
+        AI: '0'
       run: ./build-rust.sh release
 
     - name: Build Debug APK
