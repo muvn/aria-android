@@ -26,23 +26,37 @@ jobs:
       run: |
         mkdir -p ../vendor
         
-        # 1. 如果当前仓库自带了 vendor，优先使用自带的
-        if [ -d "vendor/llama-cpp-sys-2" ]; then
+        # 1. 尝试从本地仓库拷贝（如果自带）
+        if [ -d "vendor" ]; then
           echo "Found vendor in aria-android, copying..."
           cp -r vendor/* ../vendor/
         fi
         
-        # 2. 如果缺少该依赖，则从官方拉取并重建 Workspace 环境
+        # 2. 处理 llama-cpp-sys-2
         if [ ! -d "../vendor/llama-cpp-sys-2" ]; then
-          echo "Vendor not found locally. Cloning official upstream..."
+          echo "Cloning llama-cpp-sys-2..."
           git clone https://github.com/utilityai/llama-cpp-rs.git /tmp/llama-cpp-rs
           cp -r /tmp/llama-cpp-rs/llama-cpp-sys-2 ../vendor/
-          
-          # 【关键修复】：创建一个工作区根节点，解决 bindgen 继承报错
-          echo '[workspace]' > ../vendor/Cargo.toml
-          echo 'members = ["llama-cpp-sys-2"]' >> ../vendor/Cargo.toml
-          
-          # 将官方仓库的依赖配置（包含 bindgen、cc 等版本）无缝提取到我们新建的工作区中
+        fi
+        
+        # 3. 处理 whisper-rs-sys (新增修复项)
+        if [ ! -d "../vendor/whisper-rs-sys" ]; then
+          echo "Cloning whisper-rs-sys..."
+          git clone https://github.com/tazz4843/whisper-rs.git /tmp/whisper-rs
+          # 兼容上游仓库不同的目录命名习惯
+          if [ -d "/tmp/whisper-rs/whisper-rs-sys" ]; then
+            cp -r /tmp/whisper-rs/whisper-rs-sys ../vendor/
+          elif [ -d "/tmp/whisper-rs/sys" ]; then
+            cp -r /tmp/whisper-rs/sys ../vendor/whisper-rs-sys
+          fi
+        fi
+        
+        # 4. 建立 Workspace 根配置，确保两个依赖都能正确继承版本号
+        echo '[workspace]' > ../vendor/Cargo.toml
+        echo 'members = ["llama-cpp-sys-2", "whisper-rs-sys"]' >> ../vendor/Cargo.toml
+        
+        # 从拉取的上游项目提取公共依赖配置
+        if [ -f "/tmp/llama-cpp-rs/Cargo.toml" ]; then
           sed -n '/\[workspace.dependencies\]/,$p' /tmp/llama-cpp-rs/Cargo.toml >> ../vendor/Cargo.toml
         fi
 
